@@ -1,0 +1,8 @@
+streamlit==1.62.0
+pyyaml==6.0.3
+python-dotenv==1.2.2
+psycopg2-binary==2.9.10
+requests==2.34.2
+pandas==3.0.5
+google-genai
+groq

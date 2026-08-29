@@ -1,0 +1,133 @@
+target_role: "Data Analyst"
+target_city: "Bengaluru"
+keywords:
+  - "Data Analyst"
+  - "SQL"
+  - "Python"
+  - "PowerBI"
+my_skills:
+  - "Python"
+  - "SQL"
+  - "Pandas"
+  - "Tableau"
+  - "Excel"
+experience_years: 3
+db_path: "edgedash.db"
+min_fit_score: 70
+sources:
+  - "arbeitnow"
+use_mock_fetcher: false
+
+# LLM settings (rule 15) — change only here, never in code
+llm_provider: "groq"                    # "groq" | "gemini" | "ollama"
+llm_model: "groq/compound-mini"          # Verified active model on your key
+llm_rps: 1.0                  # max requests per second
+llm_rpm: 15                   # max requests per minute (rolling window)
+llm_tpm: 4000                 # max tokens per minute (rolling window)
+llm_batch_size: 25            # max listings scored per cycle (rule 21)
+
+# Orchestration thresholds (steering rules 28-33)
+fetch_interval_hours: 6.0    # run Fetcher when hours_since_fetch >= this value
+fetch_max_pages: 5            # stop condition: max pages the Fetcher may request
+fetch_max_listings: 200       # stop condition: max listings the Fetcher may return
+score_max_seconds: 300        # stop condition: max wall-clock seconds for Scorer
+analyse_max_seconds: 120      # stop condition: max wall-clock seconds for GapAnalyzer
+
+# Scoring weights (rule 16) — must sum to 1.0; deterministic arithmetic only
+target_seniority: "mid"       # junior | mid | senior | lead
+weight_skill_match:   0.45
+weight_seniority_fit: 0.25
+weight_location_fit:  0.15
+weight_recency:       0.15
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Skill alias map (steering rule 23)
+#
+# THIS MAP IS MINE TO EDIT. Adding entries here is expected and encouraged
+# as I observe collisions in my own data (use --audit to find them).
+#
+# Format:
+#   canonical_name:           # the one true name kept in gap reports
+#     - alias_one             # alternative spellings / abbreviations
+#     - alias_two
+#
+# Rules:
+#   - Canonical names and aliases are matched after lowercasing + whitespace
+#     normalisation, so capitalisation here does not matter.
+#   - Never auto-merge names by model judgement. Only entries in this map
+#     are treated as equivalent.
+#   - Keep node.js / nodejs SEPARATE from javascript — they are different
+#     skills even though they are related ecosystems.
+# ─────────────────────────────────────────────────────────────────────────────
+skill_aliases:
+
+  # Container orchestration
+  kubernetes:
+    - k8s
+
+  # Databases — Postgres family
+  postgres:
+    - postgresql
+    - psql
+
+  # Cloud — GCP
+  gcp:
+    - google cloud
+    - google cloud platform
+
+  # ML shorthand  (keep "machine learning" as the canonical full form)
+  machine learning:
+    - ml
+
+  # CI/CD normalisation  (canonical keeps the slash)
+  ci/cd:
+    - ci cd
+    - cicd
+
+  # Node.js family  (node != javascript — kept separate by design)
+  node:
+    - nodejs
+    - node.js
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Ask-box abuse guards
+#
+# Protects the free LLM tier from traffic spikes.  Only the ask box is
+# affected — the dashboard's data panels keep working under every cap.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Max total ask-box questions per calendar day (UTC).  When exceeded the ask
+# box is disabled; the rest of the dashboard stays up.
+query_daily_cap: 200
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Verification thresholds (steering rules 34-39)
+#
+# Every threshold has a comment naming the failure it is designed to catch.
+# Thresholds live here, never in code.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Catches score inflation: all jobs scoring ~75 means the scorer stopped
+# differentiating. Max-min spread below this value is suspicious.
+verification_min_score_spread: 10
+
+# Catches a compressed distribution that spread alone might miss (e.g. a
+# bimodal 30/90 split looks fine on spread but stdev exposes a flat cluster).
+verification_min_score_stdev: 5
+
+# Catches a broken extractor or a model returning {} / null for required_skills.
+# If more than this % of listings come back with no required_skills, something
+# is wrong upstream.
+verification_max_empty_extraction_pct: 20
+
+# Catches the model returning a whole sentence as a single "skill" item, or
+# any other explosion of the skills list beyond what is plausible for one job.
+verification_max_skills_per_listing: 20
+
+# Catches gap reports ranked on a single data point. A gap seen in fewer
+# listings than this must not be ranked first — it is a statistical rumour.
+verification_min_gap_sample: 3
+
+# Catches a silently failing fetcher. If the newest listing is older than
+# this many days the dashboard is showing stale data without any error.
+verification_max_data_age_days: 3
