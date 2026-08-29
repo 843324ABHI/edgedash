@@ -1,8 +1,8 @@
-streamlit==1.62.0
-pyyaml==6.0.3
-python-dotenv==1.2.2
-psycopg2-binary==2.9.10
-requests==2.34.2
-pandas==3.0.5
+streamlit>=1.30.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
+psycopg2-binary>=2.9.0
+requests>=2.31.0
+pandas>=2.0.0
 google-genai
 groq
