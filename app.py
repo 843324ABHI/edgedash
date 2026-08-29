@@ -343,6 +343,49 @@ try:
         unsafe_allow_html=True,
     )
 
+    # ── Status line (Rule 50: nested try-except so health checks never crash page) ──
+    health_color = "#94a3b8"  # Neutral Grey
+    health_text = "Status: Unknown"
+
+    try:
+        from edgedash.health import check_health
+        health_info = check_health(DB_PATH)
+        res = health_info["results"]
+
+        last_3_failed = not res["consecutive_failures"]["ok"]
+
+        last_good_dt = None
+        if last_good and last_good.get("finished_at"):
+            last_good_dt = datetime.fromisoformat(last_good["finished_at"].replace("Z", "+00:00"))
+
+        is_stale_24h = True
+        if last_good_dt:
+            age = datetime.now(timezone.utc) - last_good_dt
+            if age <= timedelta(hours=24):
+                is_stale_24h = False
+
+        if last_3_failed:
+            health_color = "#ef4444"  # Red
+            health_text = "Status: Unhealthy — Last 3 verification cycles failed"
+        elif is_stale_24h:
+            health_color = "#f59e0b"  # Amber
+            health_text = "Status: Stale — No successful cycle in the last 24h"
+        else:
+            health_color = "#10b981"  # Green
+            health_text = "Status: Healthy — Data is live"
+    except Exception as _health_exc:
+        _logger.exception("Health check reporting failed in app.py")
+        health_color = "#94a3b8"
+        health_text = "Status: Unknown"
+
+    st.markdown(
+        f"<div style='text-align: center; margin-bottom: 20px; font-size: 0.9rem;'>"
+        f"<span style='color: {health_color}; font-size: 1.2rem; vertical-align: middle; margin-right: 6px;'>●</span>"
+        f"<span style='color: #e2e8f0; font-weight: 600;'>{health_text}</span>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
     # Empty-database message (rule 50)
     if summary["total_listings"] == 0 and not latest_cycle:
         st.info(

@@ -49,6 +49,12 @@ jobs:
           set -o pipefail
           python run_cycle.py 2>&1 | tee cycle.log
 
+      - name: Run Health Check
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python -m edgedash.health
+
       - name: Upload Cycle Log
         if: always() # Upload log even if the cycle failed
         uses: actions/upload-artifact@v6
