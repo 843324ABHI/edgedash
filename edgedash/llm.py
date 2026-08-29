@@ -208,6 +208,13 @@ def _call_gemini(prompt: str, model: str) -> str:
 
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("GEMINI_API_KEY", "")
+        except Exception:
+            pass
+
+    if not api_key:
         raise LLMProviderError(
             "GEMINI_API_KEY is not set. "
             "Add it to your .env file (uppercase key: GEMINI_API_KEY=<your-key>) "
@@ -252,6 +259,13 @@ def _call_groq(prompt: str, model: str) -> str:
         ) from exc
 
     api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("GROQ_API_KEY", "")
+        except Exception:
+            pass
+
     if not api_key:
         raise LLMProviderError(
             "GROQ_API_KEY is not set. "
